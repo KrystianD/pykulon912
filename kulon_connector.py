@@ -12,6 +12,7 @@ class KulonMode(enum.Enum):
     Idle = 0
     Charging = 1
     Discharging = 2
+    PowerSupply = 3
 
 
 @dataclass
@@ -51,7 +52,8 @@ def parse_kulon_state(data: Any) -> KulonState:
     if current_str[-1] != "A":
         raise InvalidDataException()
 
-    pnf = data["pnf"]
+    prs = data.get("prs").strip()
+    pnf = data["pnf"].strip()
 
     m = re.match(r".*time:(\d\d)h(\d\d)m\s+Charge:\s*([\d.]+)Ah", pnf)
     if m is not None:
@@ -59,15 +61,18 @@ def parse_kulon_state(data: Any) -> KulonState:
         time_minutes = int(m.group(2))
         total_energy = float(m.group(3))
         return KulonState(KulonMode.Charging, voltage=voltage, current=current, energy=total_energy)
-    else:
-        m = re.match(r".*time:(\d\d)h(\d\d)m\s+Capacity:\s*([\d.]+)Ah", pnf)
-        if m is not None:
-            time_hours = int(m.group(1))
-            time_minutes = int(m.group(2))
-            total_energy = float(m.group(3))
-            return KulonState(KulonMode.Discharging, voltage=voltage, current=current, energy=total_energy)
-        else:
-            raise InvalidDataException()
+
+    m = re.match(r".*time:(\d\d)h(\d\d)m\s+Capacity:\s*([\d.]+)Ah", pnf)
+    if m is not None:
+        time_hours = int(m.group(1))
+        time_minutes = int(m.group(2))
+        total_energy = float(m.group(3))
+        return KulonState(KulonMode.Discharging, voltage=voltage, current=current, energy=total_energy)
+
+    if prs == "Power ON." and pnf in ('', 'CURRENT OVERLOAD!!',):
+        return KulonState(KulonMode.PowerSupply, voltage=voltage, current=current)
+
+    raise InvalidDataException()
 
 
 class KulonConnector:
