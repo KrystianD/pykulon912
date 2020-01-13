@@ -9,6 +9,8 @@ from lxml import etree
 
 from .exceptions import InvalidDataException, NotAccessibleException
 
+html_parser = etree.HTMLParser()
+
 
 class KulonMode(enum.Enum):
     Idle = 0
@@ -27,7 +29,7 @@ class KulonState:
 
 def parse_kulon_state(data: Any) -> KulonState:
     display_html = data["pda"]
-    doc_root = etree.parse(StringIO(display_html), etree.HTMLParser())
+    doc_root = etree.parse(StringIO(display_html), html_parser)
 
     voltage_str: str = doc_root.xpath("//strong")[0].text
     voltage = float(voltage_str[:-1])
