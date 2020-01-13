@@ -7,6 +7,8 @@ from typing import Optional, Any
 import requests
 from lxml import etree
 
+from .exceptions import InvalidDataException, NotAccessibleException
+
 
 class KulonMode(enum.Enum):
     Idle = 0
@@ -21,14 +23,6 @@ class KulonState:
     voltage: Optional[float] = None
     current: Optional[float] = None
     energy: Optional[float] = None
-
-
-class InvalidDataException(Exception):
-    pass
-
-
-class NotAccessibleException(Exception):
-    pass
 
 
 def parse_kulon_state(data: Any) -> KulonState:
@@ -95,7 +89,5 @@ class KulonConnector:
 __all__ = [
     "KulonMode",
     "KulonState",
-    "InvalidDataException",
-    "NotAccessibleException",
     "KulonConnector",
 ]
