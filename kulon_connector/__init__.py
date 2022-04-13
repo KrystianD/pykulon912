@@ -65,7 +65,7 @@ def parse_kulon_state(data: Any) -> KulonState:
         total_energy = float(m.group(3))
         return KulonState(KulonMode.Discharging, voltage=voltage, current=current, energy=total_energy)
 
-    if prs == "Power ON." and pnf in ('', 'CURRENT OVERLOAD!!',):
+    if (prs == "Power ON." and pnf in ('', 'CURRENT OVERLOAD!!',)) or pnf == "PSU pulse mode":
         return KulonState(KulonMode.PowerSupply, voltage=voltage, current=current)
 
     raise InvalidDataException()
